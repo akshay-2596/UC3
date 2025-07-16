@@ -1,21 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from './ui/button';
-import { Card } from './ui/card';
-import { Badge } from './ui/badge';
-import { Progress } from './ui/progress';
-import { 
-  Globe, 
-  LogOut, 
-  Users, 
-  TrendingUp, 
-  AlertTriangle, 
-  CheckCircle, 
-  Clock, 
-  Cloud,
-  Server,
-  Database,
-  Settings
-} from 'lucide-react';
 import { 
   cloudProviders, 
   userRoles, 
@@ -26,11 +9,18 @@ import {
   approvalWorkflow
 } from '../mock/data';
 import { useNavigate } from 'react-router-dom';
+import Header from './Header';
+import Sidebar from './Sidebar';
+import RequestsPage from './RequestsPage';
+import InfrastructurePage from './InfrastructurePage';
+import ApprovedServicesPage from './ApprovedServicesPage';
+import OverviewPage from './OverviewPage';
 
 const DashboardPage = () => {
   const [currentUser, setCurrentUser] = useState(null);
-  const [selectedProvider, setSelectedProvider] = useState('aws');
+  const [selectedProvider, setSelectedProvider] = useState('all');
   const [activeTab, setActiveTab] = useState('overview');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -52,126 +42,65 @@ const DashboardPage = () => {
     navigate('/');
   };
 
-  const handleRequestAction = (requestId, action) => {
-    // Simulate request action
-    console.log(`${action} request ${requestId}`);
+  const handleProviderChange = (provider) => {
+    setSelectedProvider(provider);
+    if (provider === 'add-new') {
+      // Handle add new service
+      console.log('Add new service functionality');
+      setSelectedProvider('all');
+    }
   };
 
   if (!currentUser) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'approved': return 'bg-green-500';
-      case 'pending': return 'bg-yellow-500';
-      case 'rejected': return 'bg-red-500';
-      default: return 'bg-gray-500';
-    }
-  };
-
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case 'high': return 'text-red-600';
-      case 'medium': return 'text-yellow-600';
-      case 'low': return 'text-green-600';
-      default: return 'text-gray-600';
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'overview':
+        return <OverviewPage currentUser={currentUser} selectedProvider={selectedProvider} />;
+      case 'requests':
+        return <RequestsPage currentUser={currentUser} selectedProvider={selectedProvider} />;
+      case 'infrastructure':
+        return <InfrastructurePage selectedProvider={selectedProvider} />;
+      case 'approved-services':
+        return <ApprovedServicesPage selectedProvider={selectedProvider} />;
+      case 'approvals':
+        return <RequestsPage currentUser={currentUser} selectedProvider={selectedProvider} />;
+      case 'team':
+        return <div>Team Management - Coming Soon</div>;
+      case 'users':
+        return <div>User Management - Coming Soon</div>;
+      case 'analytics':
+        return <div>Analytics - Coming Soon</div>;
+      case 'settings':
+        return <div>Settings - Coming Soon</div>;
+      default:
+        return <OverviewPage currentUser={currentUser} selectedProvider={selectedProvider} />;
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <Globe className="w-6 h-6" />
-              <span className="text-lg font-semibold">CloudUnify</span>
-            </div>
-            <Badge variant="outline" className="text-xs">
-              {currentUser.name} Dashboard
-            </Badge>
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            <span className="text-sm text-gray-600">Welcome, {currentUser.username}</span>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleLogout}
-              className="text-gray-600 hover:text-gray-800"
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
-            </Button>
-          </div>
-        </div>
-      </header>
-
+      <Header 
+        currentUser={currentUser}
+        selectedProvider={selectedProvider}
+        onProviderChange={handleProviderChange}
+        onLogout={handleLogout}
+        isMobileMenuOpen={isMobileMenuOpen}
+        setIsMobileMenuOpen={setIsMobileMenuOpen}
+      />
+      
       <div className="flex">
-        {/* Sidebar */}
-        <div className="w-64 bg-white border-r border-gray-200 min-h-screen">
-          <div className="p-4">
-            <nav className="space-y-2">
-              <Button
-                variant={activeTab === 'overview' ? 'default' : 'ghost'}
-                className="w-full justify-start"
-                onClick={() => setActiveTab('overview')}
-              >
-                <TrendingUp className="w-4 h-4 mr-2" />
-                Overview
-              </Button>
-              
-              {currentUser.permissions.includes('view_resources') && (
-                <Button
-                  variant={activeTab === 'resources' ? 'default' : 'ghost'}
-                  className="w-full justify-start"
-                  onClick={() => setActiveTab('resources')}
-                >
-                  <Server className="w-4 h-4 mr-2" />
-                  Resources
-                </Button>
-              )}
-              
-              {currentUser.permissions.includes('approve_requests') && (
-                <Button
-                  variant={activeTab === 'requests' ? 'default' : 'ghost'}
-                  className="w-full justify-start"
-                  onClick={() => setActiveTab('requests')}
-                >
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  Requests
-                </Button>
-              )}
-              
-              {currentUser.permissions.includes('manage_users') && (
-                <Button
-                  variant={activeTab === 'users' ? 'default' : 'ghost'}
-                  className="w-full justify-start"
-                  onClick={() => setActiveTab('users')}
-                >
-                  <Users className="w-4 h-4 mr-2" />
-                  Users
-                </Button>
-              )}
-              
-              {currentUser.permissions.includes('configure_policies') && (
-                <Button
-                  variant={activeTab === 'settings' ? 'default' : 'ghost'}
-                  className="w-full justify-start"
-                  onClick={() => setActiveTab('settings')}
-                >
-                  <Settings className="w-4 h-4 mr-2" />
-                  Settings
-                </Button>
-              )}
-            </nav>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="flex-1 p-6">
+        <Sidebar 
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          currentUser={currentUser}
+          isMobileMenuOpen={isMobileMenuOpen}
+          setIsMobileMenuOpen={setIsMobileMenuOpen}
+        />
+        
+        <div className="flex-1 md:ml-64 p-6 mt-16">
           {activeTab === 'overview' && (
             <div className="space-y-6">
               <div>
