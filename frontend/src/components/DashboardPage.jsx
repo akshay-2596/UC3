@@ -1,12 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   cloudProviders, 
-  userRoles, 
-  mockRequests, 
-  costData, 
-  dashboardStats, 
-  resourceCategories,
-  approvalWorkflow
+  userRoles
 } from '../mock/data';
 import { useNavigate } from 'react-router-dom';
 import Header from './Header';
@@ -107,7 +102,5 @@ const DashboardPage = () => {
     </div>
   );
 };
-
-export default DashboardPage;
 
 export default DashboardPage;
